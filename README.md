@@ -6,5 +6,7 @@ It's recommended to use the bot with the Microsoft Bot Framework Emulator. Downl
 
 ## Usage
 In the ```HourMarkingBot``` folder, run
-```npm start```
-Then, start the Bot Emulator and connect to ```http://localhost:3978/api/messages```
+```
+npm start
+```
+Start the Bot Emulator and connect it to ```http://localhost:3978/api/messages```.
