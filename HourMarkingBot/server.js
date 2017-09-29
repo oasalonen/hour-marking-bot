@@ -1,5 +1,11 @@
 var restify = require('restify');
 var builder = require('botbuilder');
+var Duration = require('duration-js');
+var LUIS = require("LUISSDK");
+
+var luisAppId = process.env.LUIS_APP_ID;
+var luisAppKey = process.env.LUIS_APP_KEY;
+var luisAppUrl = `https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/${luisAppId}?subscription-key=${luisAppKey}`;
 
 // Create bot and add dialogs
 var connector = new builder.ChatConnector({
@@ -31,7 +37,13 @@ var absenceGroups = {
     }
 }
 
-var bot = new builder.UniversalBot(connector);  
+var bot = new builder.UniversalBot(connector);
+var luis = new LUIS({
+    appId: luisAppId,
+    appKey: luisAppKey,
+    verbose: true
+});
+
 bot.dialog('/', [
     function (session) {
         session.send("Yesterday you did 8h of estimation for client X");
@@ -50,13 +62,26 @@ bot.dialog('/', [
 
 bot.dialog('new', [
     function (session) {
-        session.endDialog("I don't yet know how to add new entries");
+        session.dialogData.enableLuis = true;
+        builder.Prompts.text(session, "What should I mark for today?");
+    },
+    function (session, results) {
+        var context = session.toRecognizeContext();
+        context.message = results.response;
+        luis.predict(results.response, {
+            onSuccess: function (response) {
+                session.beginDialog("markHours", { intent: response });
+            },
+            onFailure: function (err) {
+                console.error(err);
+            }
+        })
     }
 ]);
 
 bot.dialog('same', [
     function (session) {
-        session.endDialog("OK, I'll mark today as the same. Thanks!");
+        session.endDialog("OK, I'll mark today the same. Thanks!");
     }
 ]);
 
@@ -128,6 +153,135 @@ bot.dialog('dontBother', [
         session.endConversation("Alright. I'll remind you to mark your hours tomorrow");
     }
 ]);
+
+bot.dialog('promptHours', [
+    function (session, durationMilliseconds) {
+        if (!durationMilliseconds) {
+            builder.Prompts.number(session, "How many hours did you do?", { retryPrompt: "That is not a valid number." });
+        }
+        else {
+            session.endDialogWithResult({ response: durationMilliseconds });
+        }
+    },
+    function (session, results) {
+        session.endDialogWithResult({ response: new Duration(results.response * Duration.hour).milliseconds() });
+    }
+]);
+
+bot.dialog('promptProject', [
+    function (session, project) {
+        if (!project) {
+            builder.Prompts.text(session, "Which project did you work for?", { retryPrompt: true })
+        }
+        else {
+            session.endDialogWithResult({ response: project });
+        }
+    },
+    function (session, results) {
+        session.endDialogWithResult(results);
+    }
+]);
+
+bot.dialog('promptDescription', [
+    function (session, description) {
+        if (!description) {
+            builder.Prompts.text(session, "What kind of a description should I write for this hour marking?", { retryPrompt: true })
+        }
+        else {
+            session.endDialogWithResult({ response: description });
+        }
+    },
+    function (session, results) {
+        session.endDialogWithResult(results);
+    }
+]);
+
+bot.dialog('markHours', [
+    function (session, args, next) {
+        var intent = args.intent;
+        session.dialogData.entry = {};
+        console.log(JSON.stringify(intent));
+
+        if (intent) {
+            var description = builder.EntityRecognizer.findEntity(intent.entities, "taskDescription");
+            var project = builder.EntityRecognizer.findEntity(intent.entities, "project");
+
+            if (project) {
+                session.dialogData.entry.project = project.entity;
+            }
+            if (description) {
+                session.dialogData.entry.description = description.entity;
+            }
+        }
+
+        var duration = parseDuration(intent);
+        session.beginDialog('promptHours', duration ? duration.milliseconds() : null);
+    },
+    function (session, results, next) {
+        session.dialogData.entry.durationMilliseconds = results.response;
+        session.beginDialog('promptProject', session.dialogData.entry.project);
+    },
+    function (session, results, next) {
+        session.dialogData.entry.project = results.response;
+        session.beginDialog('promptDescription', session.dialogData.entry.description);
+    },
+    function (session, results, next) {
+        session.dialogData.entry.description = results.response;
+        var entry = session.dialogData.entry;
+        var msg = new builder.Message(session)
+            .text(
+`I'll create the following hour marking entry for today\n
+* Time worked: ${new Duration(entry.durationMilliseconds).toString()}
+* Project:  ${entry.project}
+* Description: ${entry.description}`)
+            .textFormat("markdown")
+        session.send(msg).endDialog();
+    }
+]).triggerAction({
+    matches: 'HourEntryIntent',
+    onSelectAction: (session, args, next) => {
+        session.beginDialog(args.action, args);
+    }
+});
+
+//var luis = new builder.LuisRecognizer(luisAppUrl);
+//bot.recognizer(luis);
+
+//luis.onEnabled(function (context, callback) {
+//    var dialogs = context.dialogStack();
+//    var enabled = false;
+//    if (dialogs.length > 1 && dialogs[dialogs.length - 2].id.endsWith(":new")) {
+//        enabled = true;
+//    }
+//    callback(null, enabled);
+//});
+
+var parseDuration = function (intent) {
+    if (intent && intent.compositeEntities) {
+        var durationHours = intent.compositeEntities.find(val => val.parentType === "durationHours");
+        var durationMinutes = intent.compositeEntities.find(val => val.parentType === "durationMinutes");
+
+        var hours, minutes;
+        var duration = new Duration();
+        if (durationHours && durationHours.children) {
+            hours = durationHours.children.find(val => val.type === "builtin.number").value;
+            if (hours) {
+                duration = new Duration(duration + hours * Duration.hour);
+            }
+        }
+        if (durationMinutes && durationMinutes.children) {
+            minutes = durationMinutes.children.find(val => val.type === "builtin.number").value;
+            if (minutes) {
+                duration = new Duration(duration + minutes * Duration.minute);
+            }
+        }
+
+        return duration.seconds() > 0 ? duration : null;
+    }
+    else {
+        return null;
+    }
+}
 
 // Setup Restify Server
 var server = restify.createServer();
