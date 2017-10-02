@@ -1,0 +1,4 @@
+*.njsproj
+node_modules/
+obj/
+DockerFile*
