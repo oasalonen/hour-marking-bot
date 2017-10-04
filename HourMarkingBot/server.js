@@ -2,7 +2,7 @@ const nconf = require("nconf");
 
 nconf.env().argv();
 const serverType = nconf.get("SERVER_TYPE");
-
+console.log("SERVER_TYPE=" + serverType);
 if (!serverType) {
     throw "SERVER_TYPE must be defined and must have a value of 'bot', 'directline', or 'dev'";
 }
