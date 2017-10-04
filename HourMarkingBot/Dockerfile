@@ -11,4 +11,4 @@ COPY . .
 EXPOSE 3978
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["/bin/sh", "-c", "npm start > debug.log 2>&1"]

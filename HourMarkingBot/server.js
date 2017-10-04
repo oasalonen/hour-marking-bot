@@ -22,5 +22,6 @@ if (serverType === "directline" || serverType === "dev") {
     const directline = require("./directline_server");
 
     const botHost = nconf.get("BOT_HOST") || "http://localhost:3978";
-    directline.server.start(3000, botHost + "/api/messages");
+    const directlineHost = nconf.get("DIRECTLINE_HOST") || "http://localhost:3000";
+    directline.server.start(directlineHost, botHost + "/api/messages");
 }
