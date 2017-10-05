@@ -4,10 +4,10 @@ nconf.env().argv();
 const serverType = nconf.get("SERVER_TYPE");
 console.log("SERVER_TYPE=" + serverType);
 if (!serverType) {
-    throw "SERVER_TYPE must be defined and must have a value of 'bot', 'directline', or 'dev'";
+    throw "SERVER_TYPE must be defined and must have a value of 'bot', 'directline', or 'standalone'";
 }
 
-if (serverType === "bot" || serverType === "dev") {
+if (serverType === "bot" || serverType === "standalone") {
     const restify = require('restify');
     const Bot = require("./bot");
 
@@ -18,7 +18,7 @@ if (serverType === "bot" || serverType === "dev") {
     });
 }
 
-if (serverType === "directline" || serverType === "dev") {
+if (serverType === "directline" || serverType === "standalone") {
     const directline = require("./directline_server");
 
     const botHost = nconf.get("BOT_HOST") || "http://localhost:3978";

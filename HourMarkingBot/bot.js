@@ -1,10 +1,13 @@
-﻿var builder = require('botbuilder');
-var Duration = require('duration-js');
-var LUIS = require("LUISSDK");
+﻿const builder = require('botbuilder');
+const Duration = require('duration-js');
+const LUIS = require("LUISSDK");
+const nconf = require("nconf");
 
-var luisAppId = process.env.LUIS_APP_ID;
-var luisAppKey = process.env.LUIS_APP_KEY;
-var luisAppUrl = `https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/${luisAppId}?subscription-key=${luisAppKey}`;
+nconf.env().argv();
+
+const luisAppId = nconf.get("LUIS_APP_ID");
+const luisAppKey = nconf.get("LUIS_APP_KEY");
+const luisAppUrl = `https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/${luisAppId}?subscription-key=${luisAppKey}`;
 
 // Create bot and add dialogs
 var connector = new builder.ChatConnector({
@@ -36,13 +39,16 @@ var absenceGroups = {
     }
 }
 
-var bot = new builder.UniversalBot(connector);
+if (!luisAppId || !luisAppKey) {
+    throw "LUIS_APP_ID and LUIS_APP_KEY environment variables must be set";
+}
 var luis = new LUIS({
     appId: luisAppId,
     appKey: luisAppKey,
     verbose: false
 });
 
+var bot = new builder.UniversalBot(connector);
 bot.dialog('/', [
     function (session) {
         //session.beginDialog("promptHours"); return;
