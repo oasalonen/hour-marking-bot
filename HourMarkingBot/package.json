@@ -1,10 +1,13 @@
 {
   "name": "hour-marking-bot",
-  "version": "0.0.0",
+  "version": "0.6.2",
   "description": "Hour marking bot",
   "main": "server.js",
   "author": {
-    "name": "osal"
+    "name": "Olli Salonen"
+  },
+  "scripts": {
+    "deploy": "docker build -t futurice/$npm_package_name:$npm_package_version . && playswarm image:push -i futurice/$npm_package_name -t $npm_package_version && playswarm app:deploy -i futurice/$npm_package_name -t $npm_package_version -n $npm_package_name --port 3000"
   },
   "dependencies": {
     "LUISSDK": "https://github.com/oasalonen/Cognitive-LUIS-Node.js.git",
