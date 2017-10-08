@@ -14,6 +14,8 @@ To start it all, go to the ```HourMarkingBot``` folder and run
 
 ```npm start```
 
+To interact with the bot, simply connect to ```http://localhost:3000``` with your browser.
+
 ### Bot
 The bot needs the following environment variables to be defined:
 * ```SERVER_TYPE```: When running the bot by itself, set it to ```SERVER_TYPE=bot```
