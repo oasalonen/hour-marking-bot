@@ -2,7 +2,17 @@
 Hour marking chat bot concept built on Microsoft Bot Framework.
 
 ## Setup
-The app consists of a bot and a directline server. You may run the bot and server together or separately depending on your requirements.
+The app consists of a bot and a directline server. You may run the bot and server together or separately depending on your requirements. For a simple development environment or intranet deployment, the Standalone setup is recommended.
+
+### Standalone
+In this case, the bot and directline server both run in the same process. Set the following environment variables
+* ```SERVER_TYPE```: Set to ```SERVER_TYPE=standalone```
+* ```LUIS_APP_ID```: The ID of a LUIS app that is configured to understand hour marking intents.
+* ```LUIS_APP_KEY```: The LUIS app API key.
+
+To start it all, go to the ```HourMarkingBot``` folder and run
+
+```npm start```
 
 ### Bot
 The bot needs the following environment variables to be defined:
@@ -27,9 +37,3 @@ To start the directline server, go to the ```HourMarkingBot``` folder and run
 ### Using the bot with the Bot Emulator (without the directline server).
 You can also use the Microsoft Bot Framework Emulator to interface with the bot. In this case, run just the bot and connect the emulator to it. Point the emulator at ```http://localhost:3978/api/messages```. Download the emulator [from here](https://github.com/Microsoft/BotFramework-Emulator/releases/).
 
-### Standalone
-In this case, the bot and directline server both run in the same process. Set ```SERVER_TYPE=dev``` and leave ```BOT_HOST```and ```DIRECTLINE_HOST```undefined.
-
-To start it all, go to the ```HourMarkingBot``` folder and run
-
-```npm start```
