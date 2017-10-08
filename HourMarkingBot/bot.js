@@ -1,13 +1,6 @@
 ﻿const builder = require('botbuilder');
 const Duration = require('duration-js');
-const LUIS = require("LUISSDK");
-const nconf = require("nconf");
-
-nconf.env().argv();
-
-const luisAppId = nconf.get("LUIS_APP_ID");
-const luisAppKey = nconf.get("LUIS_APP_KEY");
-const luisAppUrl = `https://westus.api.cognitive.microsoft.com/luis/v2.0/apps/${luisAppId}?subscription-key=${luisAppKey}`;
+const luis = require('./luis').client;
 
 // Create bot and add dialogs
 var connector = new builder.ChatConnector({
@@ -39,15 +32,6 @@ var absenceGroups = {
     }
 }
 
-if (!luisAppId || !luisAppKey) {
-    throw "LUIS_APP_ID and LUIS_APP_KEY environment variables must be set";
-}
-var luis = new LUIS({
-    appId: luisAppId,
-    appKey: luisAppKey,
-    verbose: false
-});
-
 var bot = new builder.UniversalBot(connector);
 bot.dialog('/', [
     function (session) {
@@ -68,7 +52,6 @@ bot.dialog('/', [
 
 bot.dialog('new', [
     function (session) {
-        session.dialogData.enableLuis = true;
         builder.Prompts.text(session, "What should I mark for today?");
     },
     function (session, results) {
@@ -315,18 +298,6 @@ bot.dialog('markHours', [
 }).cancelAction('cancelAction', 'Ok, cancel marking.', {
     matches: /^nevermind$|^cancel$|^cancel.*marking/i
 });
-
-//var luis = new builder.LuisRecognizer(luisAppUrl);
-//bot.recognizer(luis);
-
-//luis.onEnabled(function (context, callback) {
-//    var dialogs = context.dialogStack();
-//    var enabled = false;
-//    if (dialogs.length > 1 && dialogs[dialogs.length - 2].id.endsWith(":new")) {
-//        enabled = true;
-//    }
-//    callback(null, enabled);
-//});
 
 var parseDuration = function (intent) {
     if (intent && intent.compositeEntities) {
