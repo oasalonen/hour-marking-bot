@@ -14,7 +14,7 @@ const SERVER_TYPE = {
 
 if (serverType === SERVER_TYPE.BOT || serverType === SERVER_TYPE.STANDALONE) {
     const restify = require('restify');
-    const Bot = require("./bot");
+    const Bot = require("./bot/bot");
 
     const server = restify.createServer();
     server.post('/api/messages', Bot.connector.listen());
