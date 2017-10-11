@@ -1,6 +1,9 @@
-﻿const builder = require('botbuilder');
+const builder = require('botbuilder');
 const Duration = require('duration-js');
 const luis = require('./luis').client;
+const api = require('./hours/api');
+const hours = require('./hours/hours');
+const moment = require('moment');
 
 // Create bot and add dialogs
 var connector = new builder.ChatConnector({
@@ -8,14 +11,17 @@ var connector = new builder.ChatConnector({
     appPassword: ""
 });
 
-var taskGroups = {
-    "Same as yesterday": {
+const TASK_SAME_AS_YESTERDAY = "Same as yesterday";
+const TASK_DIDNT_WORK_TODAY = "I did not work today";
+const TASK_SOMETHING_ELSE = "Something else";
+const taskGroups = {
+    [TASK_SAME_AS_YESTERDAY]: {
         type: "same"
     },
-    "I did not work today": {
+    [TASK_DIDNT_WORK_TODAY]: {
         type: "away"
     },
-    "Something else": {
+    [TASK_SOMETHING_ELSE]: {
         type: "new"
     }
 };
@@ -32,12 +38,55 @@ var absenceGroups = {
     }
 }
 
+function formatHourEntries(entries) {
+    return entries.map(entry =>
+`* Time worked: ${new Duration(entry.hours * Duration.hour).toString()}
+* Project: ${entry.project}
+* Task: ${entry.task}
+* Description: ${entry.description}`)
+        .join('\n');
+}
+
+function fetchUser(session) {
+    return session.privateConversationData.user ?
+        Promise.resolve() :
+        api.fetchUser().then(user => session.privateConversationData.user = user);
+}
+
+function fetchHours(session) {
+    const endDate = moment(Date.now());
+    const startDate = endDate.subtract(7, 'days');
+    return session.privateConversationData.hours ?
+        Promise.resolve() :
+        api.fetchHours(startDate, endDate).then(hours => session.privateConversationData.hours = hours);
+}
+
 var bot = new builder.UniversalBot(connector);
 bot.dialog('/', [
     function (session) {
-        //session.beginDialog("promptHours"); return;
-        session.send("Yesterday you did 8h of estimation for client X");
-        builder.Prompts.choice(session, "What did you do today?", taskGroups, { listStyle: builder.ListStyle.button });
+        Promise.all([fetchUser(session), fetchHours(session)])
+            .then(_ => session.beginDialog('root'))
+            .catch(error => {
+                session.endConversation(`I'm currently unavailable because I can't reach the hour API (${error})`);
+            });
+    }
+]);
+
+bot.dialog('root', [
+    function (session) {
+        const hoursData = session.privateConversationData.hours;
+        //const hoursData = hours.testPayload;
+        let message = `Hi ${session.privateConversationData.user.firstName}!`;
+        let menu = {...taskGroups};
+        const lastMarkedDay = hours.getLastMarkedDay(hoursData);
+        if (lastMarkedDay && lastMarkedDay.data.entries && lastMarkedDay.data.entries.length > 0) {
+            const readableEntries = lastMarkedDay.data.entries.map(entry => hours.getReadableEntry(entry, hoursData.reportableProjects));
+            message += ` Last time you made the following hour markings:\n${formatHourEntries(readableEntries)}`;
+        } else {
+            delete menu[TASK_SAME_AS_YESTERDAY];
+        }
+        session.send(message);
+        builder.Prompts.choice(session, "What did you do today?", menu, { listStyle: builder.ListStyle.button });
     },
     function (session, results) {
         session.beginDialog(taskGroups[results.response.entity].type);
@@ -45,10 +94,9 @@ bot.dialog('/', [
     function (session, results) {
         session.endConversation();
     }
-]).endConversationAction("end", "OK, bye!",
-    {
-        matches: /^bye$|^cancel$|^go away$/i
-    });
+]).endConversationAction("end", "OK, bye!", {
+    matches: /^bye$|^cancel$|^go away$/i
+});
 
 bot.dialog('new', [
     function (session) {
@@ -73,11 +121,11 @@ bot.dialog('new', [
 bot.dialog("hourMarkingHelp", [
     function (session) {
         var msg = new builder.Message(session)
-            .text(`Describe the kind of hour marking you want to do, such as 'mark 5 hours of coding for ProjectX'. Keep in mind the following:
+        .text(`Describe the kind of hour marking you want to do, such as 'mark 5 hours of coding for ProjectX'. Keep in mind the following:
 * An hour marking needs to have the amount of time worked.
-  * The time is in hours.
-  * Minimum amount of time per hour marking is 1 hour.
-  * Mark in half hour increments. For example, you can mark 1.5 hours but not 1.25 hours.
+* The time is in hours.
+* Minimum amount of time per hour marking is 1 hour.
+* Mark in half hour increments. For example, you can mark 1.5 hours but not 1.25 hours.
 * The project or top level category for which the work was done.
 * The task type, which is predefined and project specific.
 * A description of what you did, such as 'Bug fixing for release X'
@@ -283,11 +331,11 @@ bot.dialog('markHours', [
         session.dialogData.entry.description = results.response;
         var entry = session.dialogData.entry;
         var msg = new builder.Message(session)
-            .text(`I'll create the following hour marking entry for today\n
+        .text(`I'll create the following hour marking entry for today\n
 * Time worked: ${new Duration(entry.durationHours * Duration.hour).toString()}
 * Project:  ${entry.project}
 * Description: ${entry.description}`)
-            .textFormat("markdown")
+        .textFormat("markdown")
         session.send(msg).endDialog();
     }
 ]).triggerAction({

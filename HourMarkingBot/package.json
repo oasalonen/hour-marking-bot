@@ -11,11 +11,14 @@
   },
   "dependencies": {
     "LUISSDK": "https://github.com/oasalonen/Cognitive-LUIS-Node.js.git",
+    "bluebird": "^3.5.1",
     "botbuilder": "^3.10.1",
     "botbuilder-cognitiveservices": "^1.1.0",
     "duration-js": "^4.0.0",
     "express": "^4.16.1",
+    "moment": "^2.19.0",
     "nconf": "^0.8.5",
+    "node-fetch": "^1.7.3",
     "offline-directline": "^1.1.4",
     "restify": "^6.0.1"
   }

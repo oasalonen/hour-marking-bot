@@ -1,18 +1,16 @@
 const nconf = require("nconf");
 
 nconf.env().argv();
+nconf.required(['HOUR_API_HOST', 'SERVER_TYPE', 'LUIS_APP_ID', 'LUIS_APP_KEY']);
+
 const serverType = nconf.get("SERVER_TYPE");
 console.log("SERVER_TYPE=" + serverType);
 
 const SERVER_TYPE = {
-  BOT: "bot",
-  DIRECTLINE: "directline",
-  STANDALONE: "standalone"
+    BOT: "bot",
+    DIRECTLINE: "directline",
+    STANDALONE: "standalone"
 };
-
-if (!serverType) {
-    throw `SERVER_TYPE must be defined and must have a value of '${SERVER_TYPE.BOT}', '${SERVER_TYPE.DIRECTLINE}', or '${SERVER_TYPE.STANDALONE}'`;
-}
 
 if (serverType === SERVER_TYPE.BOT || serverType === SERVER_TYPE.STANDALONE) {
     const restify = require('restify');
