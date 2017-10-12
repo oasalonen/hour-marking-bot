@@ -1,5 +1,6 @@
 const LUIS = require("LUISSDK");
 const nconf = require("nconf");
+const Duration = require('duration-js');
 
 nconf.env().argv();
 
@@ -16,8 +17,36 @@ const client = new LUIS({
     verbose: false
 });
 
+function parseDuration(markHoursIntent) {
+    if (markHoursIntent && markHoursIntent.compositeEntities) {
+        var durationHours = markHoursIntent.compositeEntities.find(val => val.parentType === "durationHours");
+        var durationMinutes = markHoursIntent.compositeEntities.find(val => val.parentType === "durationMinutes");
+
+        var hours, minutes;
+        var duration = new Duration();
+        if (durationHours && durationHours.children) {
+            hours = durationHours.children.find(val => val.type === "builtin.number").value;
+            if (hours) {
+                duration = new Duration(duration + hours * Duration.hour);
+            }
+        }
+        if (durationMinutes && durationMinutes.children) {
+            minutes = durationMinutes.children.find(val => val.type === "builtin.number").value;
+            if (minutes) {
+                duration = new Duration(duration + minutes * Duration.minute);
+            }
+        }
+
+        return duration.seconds() > 0 ? duration : null;
+    }
+    else {
+        return null;
+    }
+}
+
 module.exports = {
-  client: client
+  client,
+  parseDuration
 };
 
 

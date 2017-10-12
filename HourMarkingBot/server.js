@@ -1,20 +1,20 @@
-const nconf = require("nconf");
+const nconf = require('nconf');
 
 nconf.env().argv();
 nconf.required(['HOUR_API_HOST', 'SERVER_TYPE', 'LUIS_APP_ID', 'LUIS_APP_KEY']);
 
-const serverType = nconf.get("SERVER_TYPE");
-console.log("SERVER_TYPE=" + serverType);
+const serverType = nconf.get('SERVER_TYPE');
+console.log('SERVER_TYPE=' + serverType);
 
 const SERVER_TYPE = {
-    BOT: "bot",
-    DIRECTLINE: "directline",
-    STANDALONE: "standalone"
+    BOT: 'bot',
+    DIRECTLINE: 'directline',
+    STANDALONE: 'standalone'
 };
 
 if (serverType === SERVER_TYPE.BOT || serverType === SERVER_TYPE.STANDALONE) {
     const restify = require('restify');
-    const Bot = require("./bot/bot");
+    const Bot = require('./bot/bot');
 
     const server = restify.createServer();
     server.post('/api/messages', Bot.connector.listen());
@@ -24,9 +24,9 @@ if (serverType === SERVER_TYPE.BOT || serverType === SERVER_TYPE.STANDALONE) {
 }
 
 if (serverType === SERVER_TYPE.DIRECTLINE || serverType === SERVER_TYPE.STANDALONE) {
-    const directline = require("./directline_server");
+    const directline = require('./directline_server');
 
-    const botHost = nconf.get("BOT_HOST") || "http://localhost:3978";
-    const directlineHost = nconf.get("DIRECTLINE_HOST") || "http://localhost:3000";
-    directline.server.start(directlineHost, botHost + "/api/messages");
+    const botHost = nconf.get('BOT_HOST') || 'http://localhost:3978';
+    const directlineHost = nconf.get('DIRECTLINE_HOST') || 'http://localhost:3000';
+    directline.server.start(directlineHost, botHost + '/api/messages');
 }
