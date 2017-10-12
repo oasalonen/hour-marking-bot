@@ -1,14 +1,14 @@
-const LUIS = require("LUISSDK");
-const nconf = require("nconf");
+const LUIS = require('LUISSDK');
+const nconf = require('nconf');
 const Duration = require('duration-js');
 
 nconf.env().argv();
 
-const luisAppId = nconf.get("LUIS_APP_ID");
-const luisAppKey = nconf.get("LUIS_APP_KEY");
+const luisAppId = nconf.get('LUIS_APP_ID');
+const luisAppKey = nconf.get('LUIS_APP_KEY');
 
 if (!luisAppId || !luisAppKey) {
-    throw "LUIS_APP_ID and LUIS_APP_KEY environment variables must be set";
+    throw 'LUIS_APP_ID and LUIS_APP_KEY environment variables must be set';
 }
 
 const client = new LUIS({
@@ -19,19 +19,19 @@ const client = new LUIS({
 
 function parseDuration(markHoursIntent) {
     if (markHoursIntent && markHoursIntent.compositeEntities) {
-        var durationHours = markHoursIntent.compositeEntities.find(val => val.parentType === "durationHours");
-        var durationMinutes = markHoursIntent.compositeEntities.find(val => val.parentType === "durationMinutes");
+        var durationHours = markHoursIntent.compositeEntities.find(val => val.parentType === 'durationHours');
+        var durationMinutes = markHoursIntent.compositeEntities.find(val => val.parentType === 'durationMinutes');
 
         var hours, minutes;
         var duration = new Duration();
         if (durationHours && durationHours.children) {
-            hours = durationHours.children.find(val => val.type === "builtin.number").value;
+            hours = durationHours.children.find(val => val.type === 'builtin.number').value;
             if (hours) {
                 duration = new Duration(duration + hours * Duration.hour);
             }
         }
         if (durationMinutes && durationMinutes.children) {
-            minutes = durationMinutes.children.find(val => val.type === "builtin.number").value;
+            minutes = durationMinutes.children.find(val => val.type === 'builtin.number').value;
             if (minutes) {
                 duration = new Duration(duration + minutes * Duration.minute);
             }
@@ -45,8 +45,8 @@ function parseDuration(markHoursIntent) {
 }
 
 module.exports = {
-  client,
-  parseDuration
+    client,
+    parseDuration
 };
 
 

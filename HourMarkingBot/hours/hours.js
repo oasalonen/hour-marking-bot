@@ -8,13 +8,13 @@ function parseDate(date) {
 
 function getLastMarkedDay(hoursResponse) {
     const lastMarkedDay = Object.values(hoursResponse.months)
-    .map(month => Object.entries(month.days))
-    .reduceRight((a, b) => { return a.concat(b) })
-    .map(day => { return {date: parseDate(day[0]), data: day[1]} })
-    .filter(day => day.data.entries && day.data.entries.length > 0)
-    .reduce((latest, current) => {
-        return latest.date.isBefore(current.date) ? current : latest;
-    }, {date: moment(0), data: null});
+        .map(month => Object.entries(month.days))
+        .reduceRight((a, b) => { return a.concat(b); })
+        .map(day => { return {date: parseDate(day[0]), data: day[1]}; })
+        .filter(day => day.data.entries && day.data.entries.length > 0)
+        .reduce((latest, current) => {
+            return latest.date.isBefore(current.date) ? current : latest;
+        }, {date: moment(0), data: null});
 
     return lastMarkedDay.data ? lastMarkedDay : null;
 }

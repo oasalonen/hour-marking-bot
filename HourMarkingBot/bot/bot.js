@@ -10,16 +10,16 @@ const hourEntry = require('./hour_entry');
 
 // Create bot and add dialogs
 var connector = new builder.ChatConnector({
-    appId: "",
-    appPassword: ""
+    appId: '',
+    appPassword: ''
 });
 
-const TASK_SAME_AS_YESTERDAY = "Same as yesterday";
-const TASK_DIDNT_WORK_TODAY = "I did not work today";
-const TASK_SOMETHING_ELSE = "Something else";
+const TASK_SAME_AS_YESTERDAY = 'Same as yesterday';
+const TASK_DIDNT_WORK_TODAY = 'I did not work today';
+const TASK_SOMETHING_ELSE = 'Something else';
 const taskGroups = {
     [TASK_SAME_AS_YESTERDAY]: {
-        type: "same"
+        type: 'same'
     },
     [TASK_DIDNT_WORK_TODAY]: {
         type: absence.DIALOGS.AWAY
@@ -68,7 +68,7 @@ bot.dialog('root', [
             delete menu[TASK_SAME_AS_YESTERDAY];
         }
         session.send(message);
-        builder.Prompts.choice(session, "What did you do today?", menu, { listStyle: builder.ListStyle.button });
+        builder.Prompts.choice(session, 'What did you do today?', menu, { listStyle: builder.ListStyle.button });
     },
     function (session, results) {
         session.beginDialog(taskGroups[results.response.entity].type);
@@ -76,19 +76,19 @@ bot.dialog('root', [
     function (session, results) {
         session.endConversation();
     }
-]).endConversationAction("end", "OK, bye!", {
+]).endConversationAction('end', 'OK, bye!', {
     matches: /^bye$|^cancel$|^go away$/i
 });
 
 bot.dialog('same', [
     function (session) {
-        session.endDialog("OK, I'll mark today the same. Thanks!");
+        session.endDialog('OK, I\'ll mark today the same. Thanks!');
     }
 ]);
 
 bot.dialog('dontBother', [
     function (session) {
-        session.endConversation("Alright. I'll remind you to mark your hours tomorrow");
+        session.endConversation('Alright. I\'ll remind you to mark your hours tomorrow');
     }
 ]);
 
@@ -98,4 +98,4 @@ hourEntry.register(bot);
 module.exports = {
     bot,
     connector
-}
+};

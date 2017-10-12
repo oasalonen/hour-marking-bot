@@ -78,40 +78,40 @@ function waitWhile(conditionFn) {
 function saveEntries(date, entries) {
     // Simple queue handling, the order of requests executing is random
     return waitWhile(() => inSaveEntriesQueue === 0)
-    .then(() => {
-        inSaveEntriesQueue++;
+        .then(() => {
+            inSaveEntriesQueue++;
 
-        // Run only one request at a time, because the api returns global updated data,
-        // so the last send request is always the last one to return and it holds the
-        // most recent data
+            // Run only one request at a time, because the api returns global updated data,
+            // so the last send request is always the last one to return and it holds the
+            // most recent data
 
-        // This method handles this error case (lower case = request, upper case = response, letter = day, number = entry request):
-        // timeline: a b ==>
-        // timeline: a1 a2 b1 b2 ==>
-        // timeline: A2 B1 B2 A1  <-- A1 holds the oldest data, which would overwrite B2
-        // This method:
-        // timeline: A1 A2 B1 B2
-        return Promise.mapSeries(
-            entries,
-            entry => {
-                let request;
-                if (entry.new) {
-                    request = hoursApiRequest('POST', '/entry/', {...entry, date});
-                } else if (entry.deleted) {
-                    request = hoursApiRequest('DELETE', `/entry/${entry.id}`);
-                } else {
-                    request = hoursApiRequest('PUT', `/entry/${entry.id}`, {...entry, date});
-                }
+            // This method handles this error case (lower case = request, upper case = response, letter = day, number = entry request):
+            // timeline: a b ==>
+            // timeline: a1 a2 b1 b2 ==>
+            // timeline: A2 B1 B2 A1  <-- A1 holds the oldest data, which would overwrite B2
+            // This method:
+            // timeline: A1 A2 B1 B2
+            return Promise.mapSeries(
+                entries,
+                entry => {
+                    let request;
+                    if (entry.new) {
+                        request = hoursApiRequest('POST', '/entry/', {...entry, date});
+                    } else if (entry.deleted) {
+                        request = hoursApiRequest('DELETE', `/entry/${entry.id}`);
+                    } else {
+                        request = hoursApiRequest('PUT', `/entry/${entry.id}`, {...entry, date});
+                    }
 
-                return request
-                .catch(error =>
-                    Promise.resolve({
-                        error,
-                        date,
-                        entry
-                    })
-                );
-            });
+                    return request
+                        .catch(error =>
+                            Promise.resolve({
+                                error,
+                                date,
+                                entry
+                            })
+                        );
+                });
         })
         .then(results => {
             let action;
@@ -160,34 +160,34 @@ function smileysApiRequest(method, path, body) {
 
 function fetchSmileys(startDate, endDate) {
     return smileysApiRequest('GET', `/own?start-date=${startDate}&end-date=${endDate}`)
-    .then(json => {
-        return {
-            type: RESULTS.FETCH_SMILEYS_SUCCESS,
-            payload: json
-        };
-    })
-    .catch(err => {
-        return {
-            type: RESULTS.FETCH_SMILEYS_ERROR,
-            payload: err
-        };
-    });
+        .then(json => {
+            return {
+                type: RESULTS.FETCH_SMILEYS_SUCCESS,
+                payload: json
+            };
+        })
+        .catch(err => {
+            return {
+                type: RESULTS.FETCH_SMILEYS_ERROR,
+                payload: err
+            };
+        });
 }
 
 function saveSmileys(date, entries, smiley) {
     return smileysApiRequest('POST', '/own', {entries, date, smiley})
-    .then(json => {
-        return {
-            type: RESULTS.SAVE_SMILEYS_SUCCESS,
-            payload: {json, entries, date, smiley}
-        };
-    })
-    .catch(err => {
-        return {
-            type: RESULTS.SAVE_SMILEYS_ERROR,
-            payload: err
-        };
-    });
+        .then(json => {
+            return {
+                type: RESULTS.SAVE_SMILEYS_SUCCESS,
+                payload: {json, entries, date, smiley}
+            };
+        })
+        .catch(err => {
+            return {
+                type: RESULTS.SAVE_SMILEYS_ERROR,
+                payload: err
+            };
+        });
 }
 
 module.exports = {

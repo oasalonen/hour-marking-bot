@@ -4,7 +4,7 @@ const luis = require('../luis');
 
 const DIALOGS = {
     CREATE: 'create_hour_entry'
-}
+};
 
 function format(entry) {
     return `* Time worked: ${new Duration(entry.hours * Duration.hour).toString()}
@@ -20,28 +20,28 @@ function formatAll(entries) {
 function register(bot) {
     bot.dialog(DIALOGS.CREATE, [
         function (session) {
-            builder.Prompts.text(session, "What should I mark for today?");
+            builder.Prompts.text(session, 'What should I mark for today?');
         },
         function (session, results) {
             var context = session.toRecognizeContext();
             context.message = results.response;
             luis.client.predict(results.response, {
                 onSuccess: function (response) {
-                    session.beginDialog("markHours", { intent: response });
+                    session.beginDialog('markHours', { intent: response });
                 },
                 onFailure: function (err) {
                     console.error(err);
                 }
-            })
+            });
         }
-    ]).beginDialogAction("showHourMarkingHelp", "hourMarkingHelp", {
+    ]).beginDialogAction('showHourMarkingHelp', 'hourMarkingHelp', {
         matches: /^help$/i
     });
 
-    bot.dialog("hourMarkingHelp", [
+    bot.dialog('hourMarkingHelp', [
         function (session) {
             var msg = new builder.Message(session)
-            .text(`Describe the kind of hour marking you want to do, such as 'mark 5 hours of coding for ProjectX'. Keep in mind the following:
+                .text(`Describe the kind of hour marking you want to do, such as 'mark 5 hours of coding for ProjectX'. Keep in mind the following:
 * An hour marking needs to have the amount of time worked.
 * The time is in hours.
 * Minimum amount of time per hour marking is 1 hour.
@@ -55,9 +55,9 @@ For more information, please go see the [hour marking guidelines in Confluence](
         }
     ]);
 
-    var FIX_HOURS_ROUND_UP = "Round up";
-    var FIX_HOURS_RETRY = "Try again";
-    var FIX_HOURS_CANCEL = "Cancel";
+    var FIX_HOURS_ROUND_UP = 'Round up';
+    var FIX_HOURS_RETRY = 'Try again';
+    var FIX_HOURS_CANCEL = 'Cancel';
 
     function ceil(value, step) {
         step || (step = 1.0);
@@ -68,7 +68,7 @@ For more information, please go see the [hour marking guidelines in Confluence](
     bot.dialog('promptHours', [
         function (session, hours, next) {
             if (!hours) {
-                builder.Prompts.number(session, "How many hours did you do?", { retryPrompt: "Please provide a valid number, such as 7 or 7.5." });
+                builder.Prompts.number(session, 'How many hours did you do?', { retryPrompt: 'Please provide a valid number, such as 7 or 7.5.' });
             }
             else {
                 next({ response: hours });
@@ -77,11 +77,11 @@ For more information, please go see the [hour marking guidelines in Confluence](
         function (session, results, next) {
             var hours = session.dialogData.hours = results.response;
             if (hours < 1.0) {
-                session.send("You cannot create an hour marking with less than one hour worked.")
+                session.send('You cannot create an hour marking with less than one hour worked.');
                 session.replaceDialog('promptHours');
             }
             else if (hours > 24) {
-                session.send("You cannot mark more than 24 hours in a day.");
+                session.send('You cannot mark more than 24 hours in a day.');
                 session.replaceDialog('promptHours');
             }
             else if (hours % 0.5 != 0) {
@@ -89,7 +89,7 @@ For more information, please go see the [hour marking guidelines in Confluence](
                 //session.replaceDialog('promptHours');
                 builder.Prompts.choice(
                     session,
-                    "You can only mark hours in half hour increments. Would you like to round up to the next half hour, try again with a different amount, or cancel this marking?",
+                    'You can only mark hours in half hour increments. Would you like to round up to the next half hour, try again with a different amount, or cancel this marking?',
                     [FIX_HOURS_ROUND_UP, FIX_HOURS_RETRY, FIX_HOURS_CANCEL],
                     { listStyle: builder.ListStyle.button });
             }
@@ -99,18 +99,18 @@ For more information, please go see the [hour marking guidelines in Confluence](
         },
         function (session, results) {
             switch (results.response.entity) {
-                case FIX_HOURS_ROUND_UP:
-                    var hours = ceil(session.dialogData.hours, 0.5);
-                    session.endDialogWithResult({ response: hours });
-                    break;
-                case FIX_HOURS_RETRY:
-                    session.replaceDialog('promptHours');
-                    break;
-                case FIX_HOURS_CANCEL:
-                    var dialogs = session.dialogStack();
-                    session.send("Ok, I'm canceling this hour marking.");
-                    session.cancelDialog('*:markHours');
-                    break;
+            case FIX_HOURS_ROUND_UP:
+                var hours = ceil(session.dialogData.hours, 0.5);
+                session.endDialogWithResult({ response: hours });
+                break;
+            case FIX_HOURS_RETRY:
+                session.replaceDialog('promptHours');
+                break;
+            case FIX_HOURS_CANCEL:
+                var dialogs = session.dialogStack();
+                session.send('Ok, I\'m canceling this hour marking.');
+                session.cancelDialog('*:markHours');
+                break;
             }
         }
     ]);
@@ -118,7 +118,7 @@ For more information, please go see the [hour marking guidelines in Confluence](
     bot.dialog('promptProject', [
         function (session, project) {
             if (!project) {
-                builder.Prompts.text(session, "Which project did you work for?", { retryPrompt: "Please provide the project name." })
+                builder.Prompts.text(session, 'Which project did you work for?', { retryPrompt: 'Please provide the project name.' });
             }
             else {
                 session.endDialogWithResult({ response: project });
@@ -132,7 +132,7 @@ For more information, please go see the [hour marking guidelines in Confluence](
     bot.dialog('promptDescription', [
         function (session, description) {
             if (!description) {
-                builder.Prompts.text(session, "What kind of a description should I write for this hour marking?", { retryPrompt: "You need to provide a description." })
+                builder.Prompts.text(session, 'What kind of a description should I write for this hour marking?', { retryPrompt: 'You need to provide a description.' });
             }
             else {
                 session.endDialogWithResult({ response: description });
@@ -150,8 +150,8 @@ For more information, please go see the [hour marking guidelines in Confluence](
             console.log(JSON.stringify(intent));
 
             if (intent) {
-                var description = builder.EntityRecognizer.findEntity(intent.entities, "taskDescription");
-                var project = builder.EntityRecognizer.findEntity(intent.entities, "project");
+                var description = builder.EntityRecognizer.findEntity(intent.entities, 'taskDescription');
+                var project = builder.EntityRecognizer.findEntity(intent.entities, 'project');
 
                 if (project) {
                     session.dialogData.entry.project = project.entity;
@@ -176,11 +176,11 @@ For more information, please go see the [hour marking guidelines in Confluence](
             session.dialogData.entry.description = results.response;
             var entry = session.dialogData.entry;
             var msg = new builder.Message(session)
-            .text(`I'll create the following hour marking entry for today\n
+                .text(`I'll create the following hour marking entry for today\n
 * Time worked: ${new Duration(entry.durationHours * Duration.hour).toString()}
 * Project:  ${entry.project}
 * Description: ${entry.description}`)
-            .textFormat("markdown")
+                .textFormat('markdown');
             session.send(msg).endDialog();
         }
     ]).triggerAction({
@@ -198,4 +198,4 @@ module.exports = {
     format,
     formatAll,
     register
-}
+};

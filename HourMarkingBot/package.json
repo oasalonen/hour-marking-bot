@@ -7,7 +7,8 @@
     "name": "Olli Salonen"
   },
   "scripts": {
-    "deploy": "docker build -t futurice/$npm_package_name:$npm_package_version . && playswarm image:push -i futurice/$npm_package_name -t $npm_package_version && playswarm app:deploy -i futurice/$npm_package_name -t $npm_package_version -n $npm_package_name --port 3000"
+    "deploy": "docker build -t futurice/$npm_package_name:$npm_package_version . && playswarm image:push -i futurice/$npm_package_name -t $npm_package_version && playswarm app:deploy -i futurice/$npm_package_name -t $npm_package_version -n $npm_package_name --port 3000",
+    "lint": "node_modules/.bin/eslint ."
   },
   "dependencies": {
     "LUISSDK": "https://github.com/oasalonen/Cognitive-LUIS-Node.js.git",
