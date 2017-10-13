@@ -10,7 +10,7 @@ In this case, the bot and directline server both run in the same process. Set th
 * ```LUIS_APP_ID```: The ID of a LUIS app that is configured to understand hour marking intents.
 * ```LUIS_APP_KEY```: The LUIS app API key.
 
-To start it all, go to the ```HourMarkingBot``` folder and run
+To start it all, run
 
 ```npm start```
 
@@ -22,7 +22,7 @@ The bot needs the following environment variables to be defined:
 * ```LUIS_APP_ID```: The ID of a LUIS app that is configured to understand hour marking intents.
 * ```LUIS_APP_KEY```: The LUIS app API key.
 
-To start the bot, go to the ```HourMarkingBot``` folder and run
+To start the bot, run
 
 ```npm start```
 
@@ -32,7 +32,7 @@ If you want to run the bot outside of Azure Bot Service, for example in a compan
 * ```BOT_HOST```: When running the bot in a different server as the directline server, set it to where the bot is running. For example, ```BOT_HOST="https://mybothost.com:3978"```. If the bot and directline server are running in the same process, leave it undefined.
 * ```DIRECTLINE_HOST```: This is where the directline server is hosted. For example, ```DIRECTLINE_HOST=https://directlinehost.com:3000```. If the bot and directline server are running in the same process, leave it undefined.
 
-To start the directline server, go to the ```HourMarkingBot``` folder and run
+To start the directline server, run
 
 ```npm start```
 
