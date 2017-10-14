@@ -2,61 +2,7 @@ const {expect} = require('chai');
 const moment = require('moment');
 
 const hours = require('../hours/hours');
-
-const hoursBuilder = function() {
-    let _months = {};
-
-    const self = {
-        withMonth: month => {
-            _months = {..._months, ...month};
-            return self;
-        },
-        build: () => {
-            return {months: _months};
-        }
-    };
-    return self;
-};
-
-const monthBuilder = function() {
-    let _month;
-    let _days = {};
-
-    const self = {
-        withMonth: month => {
-            _month = month;
-            return self;
-        },
-        withDay: day => {
-            _days = {..._days, ...day};
-            return self;
-        },
-        build: () => {
-            return {[_month]: { days: _days }};
-        }
-    };
-    return self;
-};
-
-const dayBuilder = function() {
-    let _day;
-    let _entries = [];
-
-    const self = {
-        withDay: day => {
-            _day = day;
-            return self;
-        },
-        withEntry: entry => {
-            _entries = [..._entries, entry];
-            return self;
-        },
-        build: () => {
-            return {[_day]:  { entries: _entries }};
-        }
-    }
-    return self;
-};
+const {hoursBuilder, monthBuilder, dayBuilder} = require('./utils');
 
 const testBuilder = function() {
     const days = [];
@@ -155,9 +101,9 @@ describe("hours", () => {
             });
 
             describe("with multiple days", () => {
-                it("returns the latest day before tomorrow", () => {
-                    const entry = {entry: "entry"};
+                const entry = {entry: "entry"};
 
+                it("returns the latest day before tomorrow", () => {
                     const response = testBuilder()
                         .withMarkedDay(yesterday, [entry])
                         .withMarkedDay(dayBeforeYesterday, [entry])
@@ -168,6 +114,16 @@ describe("hours", () => {
                         date: yesterday,
                         data: {entries: [entry]}
                     });
+                });
+
+                it("returns the latest day with markings", () => {
+                    const response  = testBuilder()
+                        .withEmptyDay(dayBeforeYesterday)
+                        .withMarkedDay(yesterday, [entry])
+                        .withEmptyDay(today)
+                        .build();
+
+                    expect(hours.getLastMarkedDay(response).date).to.equal(yesterday);
                 });
             });
         });

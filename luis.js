@@ -2,8 +2,6 @@ const LUIS = require('LUISSDK');
 const nconf = require('nconf');
 const Duration = require('duration-js');
 
-nconf.env().argv();
-
 const luisAppId = nconf.get('LUIS_APP_ID');
 const luisAppKey = nconf.get('LUIS_APP_KEY');
 

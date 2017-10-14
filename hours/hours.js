@@ -43,6 +43,7 @@ function getReadableEntry(entry, reportableProjects) {
 
 module.exports = {
     DATE_FORMAT,
+    parseDate,
     getLastMarkedDay,
     getReadableEntry,
     testPayload
